@@ -6,9 +6,18 @@
     import type { Writable } from "svelte/store";
 
     export let data: ChartOptions;
+    let rows: (string & number)[] = [];
+    let xRow: string[] = [];
 
-    const rows = [...data.data?.columns];
-    const xRow = rows.splice(0, 1);
+    $: updateData(data);
+
+    function updateData(data: ChartOptions) {
+        console.log(data)
+        rows = [...data.data?.columns];
+        xRow = rows.splice(0, 1);
+
+        rows = rows.sort((a, b) => a.at(-1) - b.at(-1));
+    }
 
     const domainsData: Writable<DomainDataReponse> = getContext("domainsData");
     const threndDisplay = {
@@ -26,7 +35,7 @@
             return { rank: row.at(-1).toString(), trend: "stable" };
         }
 
-        return { rank: row.at(-1).toString(), trend: row.at(-1) > row[1] ? "up" : "down" };
+        return { rank: row.at(-1).toString(), trend: row[1] > row.at(-1) ? "up" : "down" };
     }
 </script>
 

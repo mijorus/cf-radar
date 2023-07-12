@@ -11,6 +11,22 @@
 
 <body data-sveltekit-preload-data="hover">
     <div style="display: contents">%sveltekit.body%</div>
+
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .bb-chart-line {
+            animation: fadeIn .3s linear;
+        }
+    </style>
 </body>
 
 </html>
