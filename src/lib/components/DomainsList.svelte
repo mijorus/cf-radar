@@ -49,7 +49,14 @@
             <div class="flex items-center space-x-4">
                 <div class="flex-shrink-0">
                     {#if $domainsData && $domainsData[row[0]].favicon}
-                        <img class="w-8 h-8 rounded-full" src="{SERVER_URL}/data/favicons/{$domainsData[row[0]].favicon}" alt="{row[0]} favicon logo" />
+                        <img
+                            class="w-8 h-8 rounded-full"
+                            src="{SERVER_URL}/data/favicons/{$domainsData[row[0]].favicon}"
+                            alt="{row[0]} favicon logo"
+                            on:error={(e) => {
+                                e.target.src = "/img/ios-globe-4.svg";
+                            }}
+                        />
                     {:else}
                         <!-- svelte-ignore a11y-missing-attribute -->
                         <img class="w-8 h-8 rounded-full" src="/img/ios-globe-4.svg" />

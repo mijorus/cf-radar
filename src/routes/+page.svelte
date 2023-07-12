@@ -64,7 +64,7 @@
         });
 
         for (let domain in datasetsValues) {
-            if (datasetsValues[domain].at(-1) < 0 || datasetsValues[domain].at(-1) > 40) {
+            if (datasetsValues[domain].at(-1) < 0 || datasetsValues[domain].at(-1) > 10) {
                 delete datasetsValues[domain];
             }
         }
