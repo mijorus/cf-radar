@@ -1,0 +1,1 @@
+export const SERVER_URL = "https://cf-radar-data-nynf3jx4m-mijorus.vercel.app";
