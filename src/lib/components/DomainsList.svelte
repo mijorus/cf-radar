@@ -12,7 +12,7 @@
     $: updateData(data);
 
     function updateData(data: ChartOptions) {
-        console.log(data)
+        console.log(data);
         rows = [...data.data?.columns];
         xRow = rows.splice(0, 1);
 
@@ -26,16 +26,20 @@
         stable: "gg-play-pause text-yellow-300",
     };
 
-    function getRowTrend(row: (string & number)[]): { trend: "up" | "down" | "stable"; rank: string } {
+    function getRowTrend(row: (string & number)[]): { trend: "up" | "down" | "stable"; rank: string; delta: string } {
         if (row.length < xRow[0].length) {
             return { trend: "down", rank: "" };
         }
 
         if (row.at(-1) === row[1]) {
-            return { rank: row.at(-1).toString(), trend: "stable" };
+            return { rank: row.at(-1).toString(), trend: "stable", delta: "-" };
         }
 
-        return { rank: row.at(-1).toString(), trend: row[1] > row.at(-1) ? "up" : "down" };
+        return {
+            rank: row.at(-1).toString(),
+            trend: row[1] > row.at(-1) ? "up" : "down",
+            delta: (row[1] - row.at(-1)).toString().replace("-", ""),
+        };
     }
 </script>
 
@@ -52,7 +56,10 @@
                     {/if}
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-gray-900 truncate dark:text-white">{row[0]}</p>
+                    <p class="text-sm font-medium text-gray-900 truncate dark:text-white">
+                        <span class="text-gray-400">#{getRowTrend(row).rank}</span>
+                        {row[0]}
+                    </p>
                     {#if $domainsData && $domainsData[row[0]].categories}
                         <p class="text-xs text-gray-500 truncate dark:text-gray-400">
                             {$domainsData[row[0]].categories.map((el) => el.name).join(", ")}
@@ -60,7 +67,7 @@
                     {/if}
                 </div>
                 <div class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white">
-                    <span>{getRowTrend(row).rank}</span>
+                    <span>{getRowTrend(row).delta}</span>
                     <div class="w-5 flex flex-row justify-center">
                         <i class={threndDisplay[getRowTrend(row).trend]} />
                     </div>
