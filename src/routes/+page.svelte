@@ -7,6 +7,7 @@
     import type { ChartOptions } from "billboard.js";
     import DomainsList from "$lib/components/DomainsList.svelte";
     import { SERVER_URL } from "$lib/costants";
+    import "billboard.js/dist/billboard.css";
 
     let chartData: ChartOptions;
     let chartLoaded = false;
