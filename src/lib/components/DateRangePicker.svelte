@@ -22,9 +22,9 @@
     }
 </script>
 
-<div class="flex flex-row items-center gap-3 ">
-    <input class="border rounded" type="date" name="from" bind:value={fromDate} {min} {max} />
+<div class="flex flex-col md:flex-row items-center gap-3">
+    <input class="w-72 md:w-fit border rounded" type="date" name="from" bind:value={fromDate} {min} {max} />
     <span> - </span>
-    <input class="border rounded" type="date" name="to" bind:value={toDate} min={fromDate} {max} />
+    <input class="w-72 md:w-fit border rounded" type="date" name="to" bind:value={toDate} min={fromDate} {max} />
     <Button on:click={() => dispatch('apply', { fromDate, toDate })}>Apply</Button>
 </div>
