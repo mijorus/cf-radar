@@ -2,14 +2,19 @@
     import { SERVER_URL } from "$lib/costants";
     import type { ChartOptions } from "billboard.js";
     import { List, Li } from "flowbite-svelte";
-    import { getContext } from "svelte";
+    import { createEventDispatcher, getContext } from "svelte";
     import type { Writable } from "svelte/store";
+
+    const dispatch = createEventDispatcher();
 
     export let data: ChartOptions;
     let rows: (string & number)[] = [];
     let xRow: string[] = [];
 
     $: updateData(data);
+
+    let hoveredEl: string | null = null;
+    let itemClicked = false;
 
     function updateData(data: ChartOptions) {
         console.log(data);
@@ -41,12 +46,40 @@
             delta: (row[1] - row.at(-1)).toString().replace("-", ""),
         };
     }
+
+    function onItemMouseEnter(row: string[]) {
+        if (itemClicked) return;
+
+        hoveredEl = row[0];
+        dispatch("itemHovered", { domain: hoveredEl });
+    }
+
+    function onItemMouseLeave(row: string[]) {
+        if (itemClicked) return;
+
+        hoveredEl = null;
+        dispatch("itemHovered", { domain: hoveredEl });
+    }
+
+    function onItemClick(row: string[]) {
+        hoveredEl = (hoveredEl && hoveredEl === row[0] && itemClicked) ? null : row[0];
+        dispatch("itemHovered", { domain: hoveredEl });
+
+        itemClicked = hoveredEl !== null;
+    }
 </script>
 
 <List tag="ul" list="none" class="border p-2 rounded-xl w-96 max-w-md divide-y divide-gray-200 dark:divide-gray-700">
     {#each rows as row}
         <Li class="py-2 sm:py-3">
-            <div class="flex items-center space-x-4">
+            <!-- svelte-ignore a11y-no-static-element-interactions -->
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <div
+                class="flex items-center space-x-4 transition-opacity {hoveredEl ? (hoveredEl === row[0] ? 'opacity-100' : 'opacity-40') : 'opacity-100'}"
+                on:mouseenter={() => onItemMouseEnter(row)}
+                on:mouseleave={() => onItemMouseLeave(row)}
+                on:click={() => onItemClick(row)}
+            >
                 <div class="flex-shrink-0">
                     {#if $domainsData && $domainsData[row[0]].favicon}
                         <img
@@ -83,3 +116,4 @@
         </Li>
     {/each}
 </List>
+

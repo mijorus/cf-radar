@@ -16,7 +16,7 @@
 </script>
 
 <NavBar />
-<div class="container mx-auto py-10">
+<div class="container mx-auto py-10 min-h-screen">
     <slot />
 </div>
 

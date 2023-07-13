@@ -1,10 +1,12 @@
 <script lang="ts">
     import bb, { line } from "billboard.js";
     import type { Chart, ChartOptions } from "billboard.js";
-    import { onDestroy, onMount } from "svelte";
+    import { createEventDispatcher, onDestroy, onMount } from "svelte";
 
-    export let chartData: ChartOptions & { bindto: string };
+    export let chartData: ChartOptions;
     let chartObj: Chart;
+
+    const dispatch = createEventDispatcher();
 
     $: onDataChange(chartData);
 
@@ -15,6 +17,7 @@
             if (chartObj) {
                 chartObj.destroy();
                 chartObj = bb.generate(chartData);
+                dispatch("chartCreated", { chartObj });
             }
         }
     }
@@ -22,6 +25,7 @@
     onMount(() => {
         if (chartData) {
             chartObj = bb.generate(chartData);
+            dispatch("chartCreated", { chartObj });
         }
     });
 
