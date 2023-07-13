@@ -10,7 +10,7 @@
     import "billboard.js/dist/billboard.css";
     import DateRangePicker from "$lib/components/DateRangePicker.svelte";
     import { loadData } from "$lib/utils";
-    import { Label, Select } from "flowbite-svelte";
+    import { Heading, Label, Select } from "flowbite-svelte";
     import { browser } from "$app/environment";
     import type { Chart as ChartBl } from "billboard.js";
 
@@ -52,7 +52,7 @@
         let chartLabels: string[] = [];
 
         //@ts-ignore
-        const response: MonthlyDataResponse[][] = await Promise.all(monthsToLoad.map((el) => loadData(el)));
+        const response: MonthlyDataResponse[][] = await Promise.all(monthsToLoad.map((el) => loadData('cf-montly-data/' + el)));
 
         let datasetsValues: { [key: string]: (string | number)[] } = {};
 
@@ -162,7 +162,7 @@
 </script>
 
 <div class="fadeIn">
-    <h1 class="text-center font-bold text-7xl">Visualize data from CloudFlare Radar</h1>
+    <Heading tag="h1" class="mb-4" customSize="text-center text-4xl font-extrabold  md:text-5xl lg:text-6xl">Visualize data from CloudFlare Radar</Heading>
     <!-- <p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p> -->
 
     <div class="mt-24" />

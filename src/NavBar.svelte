@@ -4,6 +4,7 @@
     import { Navbar, Input, NavBrand, NavLi, NavUl, NavHamburger, Button, List, Li } from "flowbite-svelte";
     import { getContext } from "svelte";
     import { get, type Writable } from "svelte/store";
+    import { navigating } from "$app/stores";
 
     interface SearchResult extends DomainData {
         domain: string;
@@ -11,11 +12,12 @@
 
     let searchBarMobileVisible = false;
     let searchValue = "";
-    let searchBar;
     let searchResults: SearchResult[] = [];
     const domainsData: Writable<DomainDataReponse> = getContext("domainsData");
 
     $: onLoadSearchResult(searchValue);
+
+    navigating.subscribe((n) => (searchResults = []));
 
     function onLoadSearchResult(q: string) {
         searchResults = [];
@@ -35,7 +37,7 @@
     }
 
     function onWindowKeyDown(e: KeyboardEvent) {
-        if (e.key === "k" && e.ctrlKey && !['input', 'textarea'].find((el) => el === document?.activeElement?.tagName)) {
+        if (e.key === "k" && e.ctrlKey && !["input", "textarea"].find((el) => el === document?.activeElement?.tagName)) {
             e.preventDefault();
             document.getElementById("search-navbar")?.focus();
         }
@@ -57,37 +59,39 @@
                     ><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg
                 >
             </div>
-            <Input id="search-navbar" class="pl-10 md:w-72" placeholder="(Ctrl / Cmd +K)" bind:value={searchValue} />
+            <Input id="search-navbar" type="search" class="pl-10 md:w-72" placeholder="(Ctrl / Cmd +K)" bind:value={searchValue} />
 
-            <div class="absolute top-12 md:left-1/2 w-72 md:w-96 md:transform md:-translate-x-1/2">
-                {#each searchResults as searchRes}
-                    <List tag="ul" list="none" class="shadow-2xl max-w-md divide-y divide-gray-200 dark:divide-gray-700 bg-white  border rounded-xl">
-                        <Li class="p-3 sm:p-4">
-                            <a class="flex items-center space-x-4 hover:opacity-75" href="/domain/{searchRes.domain}">
-                                <div class="flex-shrink-0">
-                                    {#if searchRes.favicon}
-                                        <img
-                                            class="w-8 h-8 rounded-full"
-                                            src="{SERVER_URL}/data/favicons/{searchRes.favicon}"
-                                            alt="{searchRes.domain} favicon logo"
-                                            on:error={(e) => {
-                                                e.target.src = "/img/ios-globe-4.svg";
-                                            }}
-                                        />
-                                    {:else}
-                                        <!-- svelte-ignore a11y-missing-attribute -->
-                                        <img class="w-8 h-8 rounded-full" src="/img/ios-globe-4.svg" />
-                                    {/if}
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-medium text-gray-900 truncate dark:text-white">{searchRes.domain}</p>
-                                    <p class="text-sm text-gray-500 truncate dark:text-gray-400">{searchRes.categories.map((el) => el.name).join(", ")}</p>
-                                </div>
-                            </a>
-                        </Li>
+            {#if searchResults.length}
+                <div class="absolute top-12 md:left-1/2 w-72 md:w-96 md:transform md:-translate-x-1/2">
+                    <List tag="ul" list="none" class="shadow-2xl max-w-md divide-y divide-gray-200 dark:divide-gray-700 bg-white border rounded-xl">
+                        {#each searchResults as searchRes}
+                            <Li class="p-3 sm:p-4">
+                                <a class="flex items-center space-x-4 hover:opacity-75" href="/domain/{searchRes.domain}">
+                                    <div class="flex-shrink-0">
+                                        {#if searchRes.favicon}
+                                            <img
+                                                class="w-8 h-8 rounded-full"
+                                                src="{SERVER_URL}/data/favicons/{searchRes.favicon}"
+                                                alt="{searchRes.domain} favicon logo"
+                                                on:error={(e) => {
+                                                    e.target.src = "/img/ios-globe-4.svg";
+                                                }}
+                                            />
+                                        {:else}
+                                            <!-- svelte-ignore a11y-missing-attribute -->
+                                            <img class="w-8 h-8 rounded-full" src="/img/ios-globe-4.svg" />
+                                        {/if}
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-gray-900 truncate dark:text-white">{searchRes.domain}</p>
+                                        <p class="text-sm text-gray-500 truncate dark:text-gray-400">{searchRes.categories.map((el) => el.name).join(", ")}</p>
+                                    </div>
+                                </a>
+                            </Li>
+                        {/each}
                     </List>
-                {/each}
-            </div>
+                </div>
+            {/if}
         </div>
     </div>
 
