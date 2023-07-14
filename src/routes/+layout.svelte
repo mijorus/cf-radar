@@ -5,6 +5,7 @@
     import { SERVER_URL } from "$lib/costants";
     import { writable, type Writable } from "svelte/store";
     import { onMount, setContext } from "svelte";
+    import "billboard.js/dist/billboard.css";
     import { Footer, FooterCopyright, FooterLinkGroup, FooterLink } from "flowbite-svelte";
 
     export let data;

@@ -11,7 +11,7 @@
     $: onDataChange(chartData);
 
     function onDataChange(newChartData: ChartOptions) {
-        if (newChartData.data) {
+        if (newChartData?.data) {
             const { columns } = newChartData.data;
 
             if (chartObj) {
@@ -36,4 +36,6 @@
     });
 </script>
 
-<div id={chartData.bindto.replace("#", "")} />
+{#if chartData?.bindto && (typeof chartData.bindto === 'string')}
+    <div id={chartData.bindto.replace("#", "")} />
+{/if}

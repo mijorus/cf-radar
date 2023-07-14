@@ -7,18 +7,19 @@
     import type { ChartOptions } from "billboard.js";
     import DomainsList from "$lib/components/DomainsList.svelte";
     import { SERVER_URL } from "$lib/costants";
-    import "billboard.js/dist/billboard.css";
     import DateRangePicker from "$lib/components/DateRangePicker.svelte";
     import { loadData } from "$lib/utils";
     import { Heading, Label, Select } from "flowbite-svelte";
     import { browser } from "$app/environment";
     import type { Chart as ChartBl } from "billboard.js";
+    import DomanisChart from "$lib/components/DomanisChart.svelte";
 
     let chartData: ChartOptions;
 
     let fromDate = dayjs().subtract(2, "month");
     let toDate = dayjs().subtract(1, "day");
     let chartObj: ChartBl;
+    let mounted = false;
 
     const displayranges = [
         { name: "1st👑 - 10th", value: "1-10" },
@@ -27,103 +28,9 @@
     ];
 
     let displayRangeSelected = "1-10";
+    let activeRange: number[] = [];
 
     $: onDisplayRangeChange(displayRangeSelected);
-
-    async function loadChart() {
-        if (!browser) {
-            // Run only in the browser
-            return;
-        }
-
-        console.log("Reloading chart");
-        if (fromDate.isSame(toDate, "day") || fromDate.isAfter(toDate)) {
-            throw new Error("Invalid date range: " + fromDate.format("YYYY-MM") + " - " + toDate.format("YYYY-MM"));
-        }
-
-        const monthsToLoad = [toDate.format("YYYY-MM")];
-
-        let i = 1;
-        while (monthsToLoad[0] !== fromDate.format("YYYY-MM")) {
-            monthsToLoad.unshift(toDate.clone().subtract(i, "month").format("YYYY-MM"));
-            i++;
-        }
-
-        let chartLabels: string[] = [];
-
-        //@ts-ignore
-        const response: MonthlyDataResponse[][] = await Promise.all(monthsToLoad.map((el) => loadData('cf-montly-data/' + el)));
-
-        let datasetsValues: { [key: string]: (string | number)[] } = {};
-
-        response.forEach((month) => {
-            month.forEach((day) => {
-                const djsDate = dayjs(day.date, "YYYY-MM-DD");
-                if (djsDate.isBefore(fromDate) || djsDate.isAfter(toDate)) {
-                    return;
-                }
-
-                chartLabels.push(day.date);
-                day.result.forEach((result) => {
-                    datasetsValues[result.domain] = [result.domain];
-                });
-            });
-        });
-
-        response.forEach((month) => {
-            month.forEach((day) => {
-                const djsDate = dayjs(day.date, "YYYY-MM-DD");
-                if (djsDate.isBefore(fromDate) || djsDate.isAfter(toDate)) {
-                    return;
-                }
-
-                for (let dom in datasetsValues) {
-                    const domResult = day.result.find((el) => el.domain === dom);
-                    datasetsValues[dom].push(domResult ? domResult.rank : -1);
-                }
-            });
-        });
-
-        const activeRange: number[] = displayRangeSelected.split("-").map((r) => parseInt(r));
-        for (let domain in datasetsValues) {
-            if (datasetsValues[domain].at(-1) < activeRange[0] || datasetsValues[domain].at(-1) > activeRange[1]) {
-                delete datasetsValues[domain];
-            }
-        }
-
-        chartData = {
-            bindto: "#chart",
-            padding: {
-                top: 20,
-                right: 50,
-                bottom: 20,
-                left: 50,
-            },
-            size: { height: 600 },
-            point: {
-                show: chartLabels.length < 45,
-            },
-            data: {
-                x: "x",
-                columns: [["x", ...chartLabels], ...Object.values(datasetsValues)],
-                type: spline(), // for ESM specify as: line()
-            },
-            axis: {
-                y: {
-                    inverted: true,
-                    // min: activeRange[0],
-                    padding: 30,
-                },
-                x: {
-                    type: "timeseries",
-                    tick: {
-                        fit: true,
-                        format: "%e %b %y",
-                    },
-                },
-            },
-        };
-    }
 
     function onDateChange(e: CustomEvent) {
         fromDate = dayjs(e.detail.fromDate, "YYYY-MM-DD");
@@ -137,27 +44,27 @@
     }
 
     function onDisplayRangeChange(newRange: string) {
-        loadChart();
+        activeRange = displayRangeSelected.split("-").map((r) => parseInt(r));
     }
 
     function onDomainsListItemHover(e: CustomEvent) {
-
         if (chartObj && browser) {
             const ih = e.detail.domain;
             ih ? chartObj.focus(ih) : chartObj.focus();
 
-            if (document.getElementById('chart')) {
-                document.getElementById('chart').style.pointerEvents = ih ? 'none' : 'auto';
+            if (document.getElementById("chart")) {
+                document.getElementById("chart").style.pointerEvents = ih ? "none" : "auto";
             }
         }
     }
 
     function onChartElementCreated(e: CustomEvent) {
         chartObj = e.detail.chartObj;
+        chartData = e.detail.chartData;
     }
 
     onMount(async () => {
-        loadChart();
+        mounted = true;
     });
 </script>
 
@@ -167,7 +74,7 @@
 
     <div class="mt-24" />
 
-    {#if chartData}
+    {#if mounted}
         <div class="flex flex-row justify-center">
             <DateRangePicker
                 min="2022-10-01"
@@ -178,7 +85,8 @@
             />
         </div>
         <div>
-            <Chart {chartData} on:chartCreated={onChartElementCreated} />
+            <!-- <Chart {chartData} on:chartCreated={onChartElementCreated} /> -->
+            <DomanisChart {fromDate} {toDate} {activeRange} on:chartCreated={onChartElementCreated} />
         </div>
 
         <div class="mt-10 flex flex-col items-center gap-5">
@@ -188,10 +96,10 @@
                     <Select class="mt-2" items={displayranges} bind:value={displayRangeSelected} />
                 </Label>
             </div>
-            <DomainsList data={chartData} on:itemHovered={onDomainsListItemHover} />
-            <Label color='gray'>
-                Click on a list item to set focus
-             </Label>
+            {#if chartData}
+                <DomainsList data={chartData} on:itemHovered={onDomainsListItemHover} />
+                <Label color="gray">Click on a list item to set focus</Label>
+            {/if}
         </div>
     {/if}
 </div>

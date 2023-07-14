@@ -5,6 +5,7 @@
     import { getContext } from "svelte";
     import { get, type Writable } from "svelte/store";
     import { navigating } from "$app/stores";
+    import DomainImage from "$lib/components/DomainImage.svelte";
 
     interface SearchResult extends DomainData {
         domain: string;
@@ -17,7 +18,10 @@
 
     $: onLoadSearchResult(searchValue);
 
-    navigating.subscribe((n) => (searchResults = []));
+    navigating.subscribe((n) => {
+        searchResults = [];
+        searchValue = "";
+    });
 
     function onLoadSearchResult(q: string) {
         searchResults = [];
@@ -28,31 +32,32 @@
         q = q.trim();
 
         for (let [key, value] of Object.entries(get(domainsData))) {
-            const v: DomainData = value;
+            let v: DomainData = value;
 
-            if (key.startsWith(q)) {
+            if (key.split('.')[0].includes(q)) {
                 searchResults = [...searchResults, { ...v, domain: key }];
             }
         }
     }
 
     function onWindowKeyDown(e: KeyboardEvent) {
-        if (e.key === "k" && e.ctrlKey && !["input", "textarea"].find((el) => el === document?.activeElement?.tagName)) {
+        const modKeyPressed = navigator.userAgent.indexOf("Mac OS X") ? e.metaKey : e.ctrlKey;
+        if (e.key === "k" && modKeyPressed && !["input", "textarea"].find((el) => el === document?.activeElement?.tagName)) {
             e.preventDefault();
             document.getElementById("search-navbar")?.focus();
         }
     }
 </script>
 
-<Navbar let:hidden let:toggle navClass="p-2 md:p-0 border-b" navDivClass="mx-auto flex flex-wrap justify-between items-center">
+<Navbar let:hidden let:toggle navClass="relative p-2 md:p-0 border-b" navDivClass="mx-auto flex flex-wrap justify-between items-center">
     <div class:hidden={searchBarMobileVisible}>
         <NavBrand href="/">
             <span class="self-center whitespace-nowrap text-xl text-primary-800 font-semibold dark:text-white"> Radar </span>
             <small class="opacity-75">&nbsp;(by mijorus)</small>
         </NavBrand>
     </div>
-    <div class="w-0 md:block hidden" />
-    <div class="flex z-10">
+    <!-- <div class="w-0 md:block hidden" /> -->
+    <div class="absolute left-1/2 tranform -translate-x-1/2 flex z-10">
         <div class="md:block relative" class:hidden={!searchBarMobileVisible}>
             <div class="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 dark:text-white"
@@ -63,24 +68,12 @@
 
             {#if searchResults.length}
                 <div class="absolute top-12 md:left-1/2 w-72 md:w-96 md:transform md:-translate-x-1/2">
-                    <List tag="ul" list="none" class="shadow-2xl max-w-md divide-y divide-gray-200 dark:divide-gray-700 bg-white border rounded-xl">
+                    <List tag="ul" list="none" class="shadow-2xl max-w-md divide-y divide-gray-200 dark:divide-gray-700 bg-white border overflow-hidden rounded-xl">
                         {#each searchResults as searchRes}
-                            <Li class="p-3 sm:p-4">
-                                <a class="flex items-center space-x-4 hover:opacity-75" href="/domain/{searchRes.domain}">
+                            <Li class="p-3 sm:p-4 hover:bg-gray-100">
+                                <a class="flex items-center space-x-4" href="/domain/{searchRes.domain}">
                                     <div class="flex-shrink-0">
-                                        {#if searchRes.favicon}
-                                            <img
-                                                class="w-8 h-8 rounded-full"
-                                                src="{SERVER_URL}/data/favicons/{searchRes.favicon}"
-                                                alt="{searchRes.domain} favicon logo"
-                                                on:error={(e) => {
-                                                    e.target.src = "/img/ios-globe-4.svg";
-                                                }}
-                                            />
-                                        {:else}
-                                            <!-- svelte-ignore a11y-missing-attribute -->
-                                            <img class="w-8 h-8 rounded-full" src="/img/ios-globe-4.svg" />
-                                        {/if}
+                                        <DomainImage favicon={searchRes.favicon} />
                                     </div>
                                     <div class="flex-1 min-w-0">
                                         <p class="text-sm font-medium text-gray-900 truncate dark:text-white">{searchRes.domain}</p>
