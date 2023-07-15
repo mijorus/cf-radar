@@ -42,7 +42,7 @@
         let chartLabels: string[] = [];
 
         //@ts-ignore
-        const response: MonthlyDataResponse[][] = await Promise.all(monthsToLoad.map((el) => loadData("cf-montly-data/" + el)));
+        const response: MonthlyDataResponse[][] = await Promise.all(monthsToLoad.map((el) => loadData("cf-monthly-data/" + el)));
 
         let datasetsValues: { [key: string]: (string | number)[] } = {};
 
