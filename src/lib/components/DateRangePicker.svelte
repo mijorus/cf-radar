@@ -2,9 +2,10 @@
     import dayjs from "dayjs";
     import { createEventDispatcher } from "svelte";
     import { Button } from 'flowbite-svelte';
+    import { MIN_CF_DATE } from "$lib/costants";
 
 
-    export let min: string;
+    export let min: string = MIN_CF_DATE;
     export let max: string = dayjs().format("YYYY-MM-DD");
 
     export let fromInit: string | undefined = undefined;
@@ -12,8 +13,8 @@
 
     const dispatch = createEventDispatcher();
 
-    let fromDate = fromInit || dayjs().format("YYYY-MM-DD");
-    let toDate = toInit || dayjs().format("YYYY-MM-DD");
+    let fromDate: string = fromInit || dayjs().format("YYYY-MM-DD");
+    let toDate: string = toInit || dayjs().format("YYYY-MM-DD");
 
     $: {
         if (fromDate || toDate) {

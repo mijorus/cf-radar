@@ -39,8 +39,6 @@
         if (fromDate.isSame(toDate, "day")) {
             fromDate = fromDate.subtract(1, "day");
         }
-
-        loadChart();
     }
 
     function onDisplayRangeChange(newRange: string) {
@@ -103,25 +101,3 @@
         </div>
     {/if}
 </div>
-
-<style>
-    .fadeIn {
-        animation: fadeInBottom 1s ease;
-        animation-fill-mode: forwards;
-
-        opacity: 0%;
-        transform: translateY(20px);
-    }
-
-    @keyframes fadeInBottom {
-        0% {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        100% {
-            transform: translateY(0%);
-            opacity: 1;
-        }
-    }
-</style>

@@ -41,7 +41,7 @@
     }
 
     function onWindowKeyDown(e: KeyboardEvent) {
-        const modKeyPressed = navigator.userAgent.indexOf("Mac OS X") ? e.metaKey : e.ctrlKey;
+        const modKeyPressed = (navigator.userAgent.indexOf("Mac OS X")) >= 0 ? e.metaKey : e.ctrlKey;
         if (e.key === "k" && modKeyPressed && !["input", "textarea"].find((el) => el === document?.activeElement?.tagName)) {
             e.preventDefault();
             document.getElementById("search-navbar")?.focus();
