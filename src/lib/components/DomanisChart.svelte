@@ -61,6 +61,8 @@
             });
         });
 
+        let graphIsOverMax = false;
+
         response.forEach((month) => {
             month.forEach((day) => {
                 const djsDate = dayjs(day.date, "YYYY-MM-DD");
@@ -70,7 +72,9 @@
 
                 for (let dom in datasetsValues) {
                     const domResult = day.result.find((el) => el.domain === dom);
-                    datasetsValues[dom].push(domResult ? domResult.rank : -1);
+                    datasetsValues[dom].push(domResult ? domResult.rank : null);
+
+                    graphIsOverMax = domResult ? false : true;
                 }
             });
         });
@@ -110,8 +114,9 @@
                 y: {
                     inverted: true,
                     // min: activeRange[0],
-                    padding: { bottom: 5 },
+                    padding: { bottom: 5, top: 5 },
                     min: 1,
+                    max: (graphIsOverMax ? 101 :  undefined)
                 },
                 x: {
                     type: "timeseries",

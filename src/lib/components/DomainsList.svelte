@@ -72,7 +72,7 @@
 
 <List tag="ul" list="none" class="border p-2 rounded-xl w-96 max-w-md divide-y divide-gray-200 dark:divide-gray-700">
     {#each rows as row}
-        <Li class="py-2 sm:py-3">
+        <Li class="cursor-pointer py-2 sm:py-3">
             <!-- svelte-ignore a11y-no-static-element-interactions -->
             <!-- svelte-ignore a11y-click-events-have-key-events -->
             <div

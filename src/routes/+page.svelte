@@ -96,7 +96,10 @@
             </div>
             {#if chartData}
                 <DomainsList data={chartData} on:itemHovered={onDomainsListItemHover} />
-                <Label color="gray">Click on a list item to set focus</Label>
+                <Label color="gray" defaultClass="text-center">
+                    Click on a list item to <b>set focus</b> <br>
+                    Use the <b>search bar</b> to compare selective domains
+                </Label>
             {/if}
         </div>
     {/if}
