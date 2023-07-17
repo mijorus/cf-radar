@@ -18,7 +18,6 @@
     let itemClicked = false;
 
     function updateData(data: ChartOptions) {
-        console.log(data);
         rows = [...data.data?.columns];
         xRow = rows.splice(0, 1);
 
