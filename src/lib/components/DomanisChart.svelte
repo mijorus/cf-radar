@@ -2,14 +2,15 @@
     import { browser } from "$app/environment";
     import Chart from "$lib/components/Chart.svelte";
     import DomainImage from "$lib/components/DomainImage.svelte";
-    import { loadData } from "$lib/utils";
+    import { getRandomId, loadData } from "$lib/utils";
     import { spline, type ChartOptions } from "billboard.js";
     import dayjs from "dayjs";
-    import { Heading } from "flowbite-svelte";
+    import { Heading, Spinner } from "flowbite-svelte";
     import { createEventDispatcher, onMount } from "svelte";
 
     export let fromDate = dayjs().subtract(2, "month");
     export let toDate = dayjs().subtract(1, "day");
+    export let chartId = 'chart';
     export let activeRange: number[] | undefined = undefined;
     export let domainsFilter: string[] | undefined = undefined;
 
@@ -89,7 +90,7 @@
         }
 
         chartData = {
-            bindto: "#chart",
+            bindto: ('#' + chartId),
             padding: {
                 top: 20,
                 right: 50,
@@ -142,4 +143,8 @@
 
 {#if chartData}
     <Chart {chartData} on:chartCreated={onChartElementCreated} />
+{:else}
+    <div class="h-96 flex flex-col items-center justify-center">
+        <Spinner />
+    </div>
 {/if}

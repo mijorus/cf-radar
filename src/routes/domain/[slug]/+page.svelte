@@ -5,13 +5,15 @@
     import DateRangePicker from "$lib/components/DateRangePicker.svelte";
     import DomainImage from "$lib/components/DomainImage.svelte";
     import DomanisChart from "$lib/components/DomanisChart.svelte";
-    import { loadData } from "$lib/utils";
+    import { addQueryParam, clone, getRandomId, loadData } from "$lib/utils";
     import { spline } from "billboard.js";
     import dayjs from "dayjs";
     import { Button, GradientButton, Heading, Input } from "flowbite-svelte";
-    import { onMount, tick } from "svelte";
+    import { getContext, onMount, tick } from "svelte";
     import type { Chart as BbChart } from "billboard.js";
     import { slide, fly } from "svelte/transition";
+    import { get, type Writable } from "svelte/store";
+    import SearchDomains from "$lib/components/SearchDomains.svelte";
 
     interface DomainData {
         domainsData: DomainDataReponse;
@@ -19,17 +21,22 @@
     }
 
     export let data: DomainData;
-    $: domainsFilter = [data.domain];
 
+    $: domainsFilter = [data.domain];
     $: onDataChange(data);
 
     let fromDate = dayjs().subtract(2, "month");
     let toDate = dayjs().subtract(1, "day");
     let mounted = false;
     let rank: number | undefined;
-    let compareMode = false;
+    let compareMode = true;
     let chartObj: BbChart;
     let compareToValue: string = "";
+    let notFoundError = false;
+    const domainsData: Writable<DomainDataReponse> = getContext("domainsData");
+    let searchResults: SearchResult[] = [];
+
+    $: onLoadSearchCompareResult(compareToValue);
 
     function onDateApply(e: CustomEvent) {
         fromDate = dayjs(e.detail.fromDate, "YYYY-MM-DD");
@@ -38,8 +45,11 @@
 
     function onDataChange(data) {
         rank = undefined;
+        notFoundError = false;
+        searchResults = [];
+
         const r = data.currentMonthData.at(-1)?.result.find((el) => el.domain === data.domain);
-        if (r) rank = r.rank;
+        r ? (rank = r.rank) : (notFoundError = true);
     }
 
     async function onCompareBtnClicked() {
@@ -53,49 +63,120 @@
 
     function onChartCreated(e: CustomEvent) {
         chartObj = e.detail.chartObj;
-        chartObj.focus(data.domain);
+
+        if (domainsFilter.length === 1) {
+            chartObj.focus(data.domain);
+        }
+    }
+
+    function onLoadSearchCompareResult(q: string) {
+        searchResults = [];
+        if (!browser || !get(domainsData) || q.length < 3) {
+            return;
+        }
+
+        q = q.trim();
+
+        for (let [key, value] of Object.entries(get(domainsData))) {
+            if (key.split(".")[0].includes(q) && !domainsFilter.includes(key)) {
+                searchResults = [...searchResults, { ...value, domain: key }];
+            }
+        }
+    }
+
+    function onCompareItemClicked(e: CustomEvent) {
+        domainsFilter = [...domainsFilter, e.detail.searchRes.domain];
+        searchResults = [];
+        compareToValue = "";
+
+        let compClone: string[] = clone(domainsFilter);
+        addQueryParam("compareTo", compClone.slice(1));
+    }
+
+    function onCompareResetBtnClicked() {
+        domainsFilter = [data.domain];
+        window.history.replaceState({}, "", window.location.pathname);
+    }
+
+    function onRemoveCompareDomainClicked(domain: string) {
+        domainsFilter.splice(domainsFilter.indexOf(domain), 1);
+        domainsFilter = [...domainsFilter];
     }
 
     onMount(async () => {
         mounted = true;
+
+        let compareToQs = $page.url.searchParams.get("compareTo");
+
+        if (compareToQs) {
+            domainsFilter = [...domainsFilter, ...compareToQs.split(",").filter((el) => Object.keys(get(domainsData)).includes(el))];
+        }
     });
 </script>
 
 <Heading tag="h1" class="mb-4" customSize="flex flex-row items-end justify-between">
-    <div class="flex flex-row items-end gap-3">
-        <DomainImage favicon={data.domainsData[data.domain].favicon} imageClass="w-8 h-8 md:w-12 md:h-12 rounded-full" />
-        <span class="text-4xl font-extrabold md:text-5xl lg:text-6xl">
-            {data.domain}
-        </span>
-        {#if rank}
-            <span class="opacity-50 text-2xl md:text-3xl"> #{rank} </span>
-        {/if}
-    </div>
-    <div>
-        <Button outline color="red" pill on:click={onCompareBtnClicked}>
-            <span>{compareMode ? '-' : '+'} Compare</span>
-        </Button>
-    </div>
+    {#if notFoundError}
+        <div>
+            <div class="mb-6 text-red-500 text-4xl font-extrabold md:text-5xl lg:text-6xl">404: Not found</div>
+            <a href="/" class="text-xl underline">{"<"} Homepage</a>
+        </div>
+    {:else}
+        <div class="flex flex-row items-end gap-3">
+            <DomainImage favicon={data.domainsData[data.domain].favicon} imageClass="w-8 h-8 md:w-12 md:h-12 rounded-full" />
+            <span class="text-4xl font-extrabold md:text-5xl lg:text-6xl">
+                {data.domain}
+            </span>
+            {#if rank}
+                <span class="opacity-50 text-2xl md:text-3xl"> #{rank} </span>
+            {/if}
+        </div>
+        <div>
+            <Button outline={compareMode} pill on:click={onCompareBtnClicked}>
+                <span>{compareMode ? "< Close" : "+ Compare"}</span>
+            </Button>
+        </div>
+    {/if}
 </Heading>
 
 <div class="mt-20">
     {#if mounted}
-        <div class="flex flex-row w-full">
-            <div class="{compareMode ? 'w-full md:w-1/2' : 'w-full'}">
-                <div class="flex flex-row justify-center">
-                    <DateRangePicker fromInit={fromDate.format("YYYY-MM-DD")} on:apply={onDateApply} />
-                </div>
-                <div>
-                    <DomanisChart {fromDate} {toDate} {domainsFilter} on:chartCreated={onChartCreated} />
-                </div>
+        {#if !notFoundError}
+            <div class="mb-10 flex flex-row justify-center">
+                <DateRangePicker fromInit={fromDate.format("YYYY-MM-DD")} on:apply={onDateApply} />
             </div>
-            {#if compareMode}
-                <div class="flex flex-col items-center w-full md:w-1/2" in:fly>
+            <div class="flex flex-row w-full">
+                <div class={compareMode ? "w-full md:w-2/3" : "w-full"}>
                     <div>
-                        <Input id="search-navbar" type="search" class="pl-10 md:w-72" placeholder="Type a domain..." bind:value={compareToValue} />
+                        <DomanisChart chartId={"chart-" + getRandomId()} {fromDate} {toDate} {domainsFilter} on:chartCreated={onChartCreated} />
                     </div>
                 </div>
-            {/if}
-        </div>
+                {#if compareMode}
+                    <div class="flex flex-col items-center w-full md:w-1/3" in:fly>
+                        <div>
+                            <Input id="search-navbar" type="search" class="mb-2 pl-10 md:w-72" placeholder="Add a domain..." bind:value={compareToValue} />
+                            <div class:hidden={searchResults.length} class="flex flex-col items-center">
+                                <Button size="xs" color="light" outline on:click={onCompareResetBtnClicked}><i class="gg-undo mr-2" />Reset</Button>
+                                <div class="mt-10" />
+                                <ul class="w-full">
+                                    {#each domainsFilter.slice(1) as dom}
+                                        <li class="flex flex-row justify-between items-center mt-3 p-3 border border-gray-400 rounded-xl w-full">
+                                            <span>{dom}</span>
+                                            <!-- svelte-ignore a11y-no-static-element-interactions -->
+                                            <!-- svelte-ignore a11y-click-events-have-key-events -->
+                                            <button on:click={() => onRemoveCompareDomainClicked(dom)}>
+                                                <i class="gg-close text-red-600 cursor-pointer" />
+                                            </button>
+                                        </li>
+                                    {/each}
+                                </ul>
+                            </div>
+                            <div class="w-full" class:hidden={!searchResults.length}>
+                                <SearchDomains {searchResults} on:itemClicked={onCompareItemClicked} />
+                            </div>
+                        </div>
+                    </div>
+                {/if}
+            </div>
+        {/if}
     {/if}
 </div>

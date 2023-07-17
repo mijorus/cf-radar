@@ -19,3 +19,7 @@ interface DomainData {
 }
 
 type DomainDataReponse = { [key: string]: DomainData }
+
+interface SearchResult extends DomainData {
+    domain: string;
+}
