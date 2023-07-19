@@ -24,7 +24,9 @@
     const displayranges = [
         { name: "1st👑 - 10th", value: "1-10" },
         { name: "11th - 20th", value: "11-20" },
-        { name: "21st - 45th", value: "21-45" },
+        { name: "21st - 45th", value: "21-50" },
+        { name: "51st - 75th", value: "51-75" },
+        { name: "76st - 100th", value: "76-100" },
     ];
 
     let displayRangeSelected = "1-10";
@@ -50,9 +52,7 @@
             const ih = e.detail.domain;
             ih ? chartObj.focus(ih) : chartObj.focus();
 
-            if (document.getElementById("chart")) {
-                document.getElementById("chart").style.pointerEvents = ih ? "none" : "auto";
-            }
+            document.getElementById("chart").style.pointerEvents = ih ? "none" : "auto";
         }
     }
 

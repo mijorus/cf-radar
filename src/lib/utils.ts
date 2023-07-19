@@ -3,27 +3,36 @@ import { SERVER_URL } from "./costants";
 import { browser } from "$app/environment";
 
 export async function loadData(objectName: string): Promise<any> {
+    console.log('Loading ' + `${SERVER_URL}/${objectName}.json`);
 
-    let obj = browser ? sessionStorage.getItem(objectName) : undefined;
+    let obj = undefined;
+    let cache = undefined;
+    if (browser && sessionStorage.getItem('dataCache')) {
+        cache = JSON.parse((sessionStorage.getItem('dataCache') || '{}'));
+        obj = cache[objectName];
+    }
+
     if (!obj) {
-        obj = await ky.get(`${SERVER_URL}/${objectName}.json`).text();
+        obj = await ky.get(`${SERVER_URL}/${objectName}.json`).json();
         if (browser) {
             try {
-                sessionStorage.setItem(objectName, obj);
+                cache[objectName] = obj;
+                sessionStorage.setItem('dataCache', JSON.stringify(cache));
             } catch (e) {
-                sessionStorage.clear();
+                sessionStorage.removeItem('dataCache');
             }
         }
     }
 
-    return JSON.parse(obj);
+    // console.log(obj)
+    return obj;
 }
 
 export function getRandomId() {
     return (Math.random() + 1).toString(36).substring(7);
 }
 
-export function addQueryParam(key: string, value: any) {
+export function addQueryParam(key: string, value: any): string {
     if (!window) {
         return;
     }
@@ -40,7 +49,7 @@ export function addQueryParam(key: string, value: any) {
     console.log(params.toString());
 
     // Update URL
-    window.history.replaceState({}, '', `${path}?${params.toString()}${hash}`);
+    return `${path}?${params.toString()}${hash}`;
 }
 
 export function clone(obj: any) {

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { browser } from "$app/environment";
+    import { page } from "$app/stores";
     import Chart from "$lib/components/Chart.svelte";
     import DomainImage from "$lib/components/DomainImage.svelte";
     import { getRandomId, loadData } from "$lib/utils";
@@ -10,14 +11,19 @@
 
     export let fromDate = dayjs().subtract(2, "month");
     export let toDate = dayjs().subtract(1, "day");
-    export let chartId = 'chart';
+    export let chartId = "chart";
     export let activeRange: number[] | undefined = undefined;
     export let domainsFilter: string[] | undefined = undefined;
 
     let chartData: ChartOptions;
+    let searchString = window.location.search;
     let chartObj;
 
-    $: triggerReload(fromDate, toDate, activeRange, domainsFilter);
+    $: {
+        if ($page.url.search !== searchString) searchString = $page.url.search;
+    }
+
+    $: triggerReload(fromDate, toDate, activeRange, domainsFilter, searchString);
 
     const dispatch = createEventDispatcher();
 
@@ -26,6 +32,8 @@
             // Run only in the browser
             return;
         }
+        
+        chartData = undefined;
 
         console.log("Reloading chart");
         if (fromDate.isSame(toDate, "day") || fromDate.isAfter(toDate)) {
@@ -42,8 +50,20 @@
 
         let chartLabels: string[] = [];
 
-        //@ts-ignore
-        const response: MonthlyDataResponse[][] = await Promise.all(monthsToLoad.map((el) => loadData("cf-monthly-data/" + el)));
+        const countryCode = $page.url.searchParams.get("country");
+
+        let response: MonthlyDataResponse[][];
+        if (countryCode) {
+            //@ts-ignore
+            response = await Promise.all(
+                monthsToLoad.map((el) => {
+                    return loadData("cf-localized/" + countryCode + "/" + el);
+                })
+            );
+        } else {
+            //@ts-ignore
+            response = await Promise.all(monthsToLoad.map((el) => loadData("cf-monthly-data/" + el)));
+        }
 
         let datasetsValues: { [key: string]: (string | number)[] } = {};
 
@@ -94,7 +114,7 @@
         }
 
         chartData = {
-            bindto: ('#' + chartId),
+            bindto: "#" + chartId,
             padding: {
                 top: 20,
                 right: 50,
@@ -116,7 +136,7 @@
                     // min: activeRange[0],
                     padding: { bottom: 5, top: 5 },
                     min: 1,
-                    max: (graphIsOverMax ? 101 :  undefined)
+                    max: graphIsOverMax ? 101 : undefined,
                 },
                 x: {
                     type: "timeseries",
@@ -137,7 +157,7 @@
         });
     }
 
-    function triggerReload(r, e, l, o) {
+    function triggerReload(r = "", e = "", l = "", o = "", a = "", d = "") {
         loadChart();
     }
 

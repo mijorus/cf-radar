@@ -4,11 +4,10 @@
     import { Navbar, Input, NavBrand, NavLi, NavUl, NavHamburger, Button, List, Li, Chevron, Dropdown, DropdownItem } from "flowbite-svelte";
     import { getContext, onMount } from "svelte";
     import { get, type Writable } from "svelte/store";
-    import { navigating } from "$app/stores";
-    import DomainImage from "$lib/components/DomainImage.svelte";
+    import { navigating, page } from "$app/stores";
     import SearchDomains from "$lib/components/SearchDomains.svelte";
     import { goto } from "$app/navigation";
-    import { loadData } from "$lib/utils";
+    import { addQueryParam, loadData } from "$lib/utils";
     import { getCountryName } from "$lib/countryCodes";
 
     let searchBarMobileVisible = false;
@@ -17,8 +16,12 @@
     const domainsData: Writable<DomainDataReponse> = getContext("domainsData");
     let isMac = false;
     let countries: string[] = [];
+    let countriesFilter = "";
+
+    $: selectedCountry = $page.url.searchParams.get("country") || "Worldwide";
 
     $: onLoadSearchResult(searchValue);
+    // $: onCountriesFilterChange(countriesFilter);
 
     navigating.subscribe((n) => {
         searchResults = [];
@@ -42,6 +45,11 @@
         }
     }
 
+    // function onCountriesFilterChange(q: string) {
+    //     q = q.trim().toLowerCase();
+    //     countries = countries.filter((el) => el.toLowerCase().startsWith(q));
+    // }
+
     function onWindowKeyDown(e: KeyboardEvent) {
         const modKeyPressed = isMac ? e.metaKey : e.ctrlKey;
         if (e.key === "k" && modKeyPressed && !["input", "textarea"].find((el) => el === document?.activeElement?.tagName)) {
@@ -58,11 +66,18 @@
         goto("/domain/" + e.detail.searchRes.domain);
     }
 
+    function onCountryChange(countryCode: string | null) {
+        if (!countryCode) {
+            goto(window.location.pathname);
+        } else {
+            goto(addQueryParam("country", countryCode));
+        }
+    }
+
     onMount(async () => {
         isMac = navigator.userAgent.indexOf("Mac OS X") >= 0;
 
         countries = (await loadData("data/data")).country_codes;
-        console.log(countries);
     });
 </script>
 
@@ -111,14 +126,24 @@
     <NavUl {hidden} ulClass="flex flex-col p-4 mt-4 md:flex-row md:items-center md:space-x-8 md:mt-0 md:text-sm md:font-medium">
         <div class="order-last md:order-first z-10">
             <Button color="light" outline>
-                <Chevron>Worldwide</Chevron>
+                <Chevron>{selectedCountry}</Chevron>
             </Button>
             <Dropdown id="country-selector">
-                <div slot="header" class="px-4 py-2">
+                <DropdownItem on:click={() => onCountryChange(null)}>
                     <span class="block text-sm text-gray-900 dark:text-white">Worldwide</span>
-                </div>
-                {#each countries.map((el) => getCountryName(el)).sort() as c}
-                    <DropdownItem>{getCountryName(c)}</DropdownItem>
+                </DropdownItem>
+                <hr />
+                <DropdownItem defaultClass="p-3">
+                    <Input size="sm" placeholder="Filter" bind:value={countriesFilter} />
+                </DropdownItem>
+                {#each countries
+                    .map((el) => {
+                        return { name: getCountryName(el), code: el };
+                    })
+                    .sort((a, b) => (a.name > b.name ? 1 : -1)) as c}
+                    {#if c.name.toLowerCase().startsWith(countriesFilter.toLowerCase())}
+                        <DropdownItem on:click={() => onCountryChange(c.code)}>{c.name}</DropdownItem>
+                    {/if}
                 {/each}
             </Dropdown>
         </div>

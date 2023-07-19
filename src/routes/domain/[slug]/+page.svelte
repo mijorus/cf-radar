@@ -14,6 +14,7 @@
     import { slide, fly } from "svelte/transition";
     import { get, type Writable } from "svelte/store";
     import SearchDomains from "$lib/components/SearchDomains.svelte";
+    import { goto } from "$app/navigation";
 
     interface DomainData {
         domainsData: DomainDataReponse;
@@ -29,7 +30,7 @@
     let toDate = dayjs().subtract(1, "day");
     let mounted = false;
     let rank: number | undefined;
-    let compareMode = true;
+    let compareMode = false;
     let chartObj: BbChart;
     let compareToValue: string = "";
     let notFoundError = false;
@@ -90,7 +91,7 @@
         compareToValue = "";
 
         let compClone: string[] = clone(domainsFilter);
-        addQueryParam("compareTo", compClone.slice(1));
+        goto(addQueryParam("compareTo", compClone.slice(1)));
     }
 
     function onCompareResetBtnClicked() {
