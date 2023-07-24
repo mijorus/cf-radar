@@ -15,7 +15,7 @@
             <!-- svelte-ignore a11y-no-static-element-interactions -->
             <div class="cursor-pointer flex items-center space-x-4" on:click={() => dispatch('itemClicked', { searchRes })}>
                 <div class="flex-shrink-0">
-                    <DomainImage favicon={searchRes.favicon} />
+                    <DomainImage favicon={searchRes.favicon} domain={searchRes.domain}/>
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-gray-900 truncate dark:text-white">{searchRes.domain}</p>
