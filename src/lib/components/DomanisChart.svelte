@@ -2,7 +2,6 @@
     import { browser } from "$app/environment";
     import { page } from "$app/stores";
     import Chart from "$lib/components/Chart.svelte";
-    import DomainImage from "$lib/components/DomainImage.svelte";
     import { getRandomId, loadData } from "$lib/utils";
     import { spline, type ChartOptions } from "billboard.js";
     import dayjs from "dayjs";

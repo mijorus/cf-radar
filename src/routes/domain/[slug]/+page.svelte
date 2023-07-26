@@ -123,7 +123,7 @@
         </div>
     {:else}
         <div class="flex flex-row items-end gap-3">
-            <DomainImage favicon={data.domainsData[data.domain].favicon} imageClass="w-8 h-8 md:w-12 md:h-12 rounded-full" />
+            <DomainImage favicon={data.domainsData[data.domain].favicon} imageClass="w-8 h-8 md:w-12 md:h-12 rounded-full" domain={data.domain} />
             <span class="text-4xl font-extrabold md:text-5xl lg:text-6xl">
                 {data.domain}
             </span>

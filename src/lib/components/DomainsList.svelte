@@ -25,6 +25,8 @@
     }
 
     const domainsData: Writable<DomainDataReponse> = getContext("domainsData");
+
+    $: console.log($domainsData);
     const threndDisplay = {
         up: "gg-arrow-up text-green-500",
         down: "gg-arrow-down text-red-500",
@@ -62,7 +64,7 @@
     }
 
     function onItemClick(row: string[]) {
-        hoveredEl = (hoveredEl && hoveredEl === row[0] && itemClicked) ? null : row[0];
+        hoveredEl = hoveredEl && hoveredEl === row[0] && itemClicked ? null : row[0];
         dispatch("itemHovered", { domain: hoveredEl });
 
         itemClicked = hoveredEl !== null;
@@ -81,7 +83,7 @@
                 on:click={() => onItemClick(row)}
             >
                 <div class="flex-shrink-0">
-                    <DomainImage favicon={ $domainsData ? $domainsData[row[0]].favicon : null} />
+                    <DomainImage favicon={$domainsData ? $domainsData[row[0]].favicon : null} domain={row[0]} />
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-gray-900 truncate dark:text-white">
@@ -104,4 +106,3 @@
         </Li>
     {/each}
 </List>
-
