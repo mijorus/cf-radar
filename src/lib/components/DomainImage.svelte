@@ -30,7 +30,14 @@
 </script>
 
 {#if checkDone}
-    <img class={imageClass} src={imageSrc} alt="{favicon} favicon logo" />
+    <img
+        class={imageClass}
+        src={imageSrc}
+        alt="{favicon} favicon logo"
+        on:error={(e) => {
+            e.target.src = "/img/ios-globe-4.svg";
+        }}
+    />
 {:else}
     <!-- svelte-ignore a11y-missing-attribute -->
     <img class={imageClass} src="/img/ios-globe-4.svg" />
